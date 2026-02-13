@@ -69,6 +69,12 @@ export default function AdminPage() {
     output?: string;
     bucket?: string;
     error?: string;
+    diagnostics?: {
+      bucket: string;
+      endpoint: string;
+      cf_account_id_length: number;
+      r2_access_key_id_preview: string;
+    };
   } | null>(null);
   const [r2TestInProgress, setR2TestInProgress] = useState(false);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsResponse | null>(null);
@@ -233,6 +239,7 @@ export default function AdminPage() {
         output: result.output || result.stderr || result.stdout || result.error,
         bucket: result.bucket,
         error: result.error,
+        diagnostics: result.diagnostics,
       });
     } catch (err) {
       setR2TestResult({
@@ -391,6 +398,14 @@ export default function AdminPage() {
             <div className={`r2-test-result ${r2TestResult.ok ? 'ok' : 'error'}`}>
               <strong>R2 test {r2TestResult.ok ? 'succeeded' : 'failed'}:</strong>
               {r2TestResult.bucket && <span> bucket={r2TestResult.bucket}</span>}
+              {r2TestResult.diagnostics && (
+                <div className="r2-diagnostics">
+                  <strong>Config:</strong> endpoint={r2TestResult.diagnostics.endpoint},{' '}
+                  bucket={r2TestResult.diagnostics.bucket},{' '}
+                  access_key={r2TestResult.diagnostics.r2_access_key_id_preview},{' '}
+                  account_id_len={r2TestResult.diagnostics.cf_account_id_length}
+                </div>
+              )}
               {r2TestResult.output && (
                 <pre className="r2-test-output">{r2TestResult.output}</pre>
               )}

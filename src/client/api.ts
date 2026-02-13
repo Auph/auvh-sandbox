@@ -194,6 +194,12 @@ export interface R2TestResponse {
   exitCode?: number;
   error?: string;
   missing?: string[];
+  diagnostics?: {
+    bucket: string;
+    endpoint: string;
+    cf_account_id_length: number;
+    r2_access_key_id_preview: string;
+  };
 }
 
 export async function testR2Connection(): Promise<R2TestResponse> {

@@ -16,7 +16,8 @@ export const STARTUP_TIMEOUT_MS = 180_000;
  * Can be overridden via R2_BUCKET_NAME env var for test isolation.
  */
 export function getR2BucketName(env?: { R2_BUCKET_NAME?: string }): string {
-  return env?.R2_BUCKET_NAME || 'clawworker-data';
+  const name = env?.R2_BUCKET_NAME?.trim();
+  return name || 'clawworker-data';
 }
 
 /**

@@ -364,6 +364,9 @@ adminApi.get('/storage/test', async (c) => {
   }
 
   const bucket = getR2BucketName(c.env);
+  const accessKey = c.env.R2_ACCESS_KEY_ID?.trim() ?? '';
+  const accountId = c.env.CF_ACCOUNT_ID?.trim() ?? '';
+
   // List bucket root to test connectivity (always return 200 so we can show raw output)
   const result = await sandbox.exec(
     `rclone lsd r2:${bucket} --max-depth 1 2>&1 || true`,
@@ -379,6 +382,18 @@ adminApi.get('/storage/test', async (c) => {
     stderr: result.stderr || '',
     output: output.slice(-2000),
     exitCode: result.exitCode,
+    // Diagnostics (masked) - verify env vars are correct
+    diagnostics: {
+      bucket,
+      endpoint: accountId ? `https://${accountId}.r2.cloudflarestorage.com` : '(not set)',
+      cf_account_id_length: accountId.length,
+      r2_access_key_id_preview:
+        accessKey.length >= 8
+          ? `${accessKey.slice(0, 4)}...${accessKey.slice(-4)}`
+          : accessKey
+            ? '(too short)'
+            : '(not set)',
+    },
   });
 });
 

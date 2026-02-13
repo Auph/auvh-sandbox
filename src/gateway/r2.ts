@@ -11,7 +11,11 @@ const RCLONE_CONF_PATH = '/root/.config/rclone/rclone.conf';
  * @returns true if rclone is configured, false if credentials are missing
  */
 export async function ensureRcloneConfig(sandbox: Sandbox, env: MoltbotEnv): Promise<boolean> {
-  if (!env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY || !env.CF_ACCOUNT_ID) {
+  const accessKey = env.R2_ACCESS_KEY_ID?.trim();
+  const secretKey = env.R2_SECRET_ACCESS_KEY?.trim();
+  const accountId = env.CF_ACCOUNT_ID?.trim();
+
+  if (!accessKey || !secretKey || !accountId) {
     console.log(
       'R2 storage not configured (missing R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, or CF_ACCOUNT_ID)',
     );
@@ -22,9 +26,9 @@ export async function ensureRcloneConfig(sandbox: Sandbox, env: MoltbotEnv): Pro
     '[r2]',
     'type = s3',
     'provider = Cloudflare',
-    `access_key_id = ${env.R2_ACCESS_KEY_ID}`,
-    `secret_access_key = ${env.R2_SECRET_ACCESS_KEY}`,
-    `endpoint = https://${env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    `access_key_id = ${accessKey}`,
+    `secret_access_key = ${secretKey}`,
+    `endpoint = https://${accountId}.r2.cloudflarestorage.com`,
     'acl = private',
     'no_check_bucket = true',
   ].join('\n');
