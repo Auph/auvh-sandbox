@@ -185,6 +185,21 @@ export async function getStorageStatus(): Promise<StorageStatusResponse> {
   return apiRequest<StorageStatusResponse>('/storage');
 }
 
+export interface R2TestResponse {
+  ok: boolean;
+  bucket?: string;
+  stdout?: string;
+  stderr?: string;
+  output?: string;
+  exitCode?: number;
+  error?: string;
+  missing?: string[];
+}
+
+export async function testR2Connection(): Promise<R2TestResponse> {
+  return apiRequest<R2TestResponse>('/storage/test');
+}
+
 export interface SyncResponse {
   success: boolean;
   message?: string;

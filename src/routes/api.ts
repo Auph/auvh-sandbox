@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../types';
-import { getGatewayToken } from '../config';
+import { getGatewayToken, getR2BucketName } from '../config';
 import { createAccessMiddleware } from '../auth';
 import {
   ensureMoltbotGateway,
@@ -8,6 +8,7 @@ import {
   syncToR2,
   waitForProcess,
 } from '../gateway';
+import { ensureRcloneConfig } from '../gateway/r2';
 
 // CLI commands can take 10-15 seconds to complete due to WebSocket connection overhead
 const CLI_TIMEOUT_MS = 20000;
@@ -338,6 +339,46 @@ adminApi.get('/storage', async (c) => {
     message: hasCredentials
       ? 'R2 storage is configured. Your data will persist across container restarts.'
       : 'R2 storage is not configured. Paired devices and conversations will be lost when the container restarts.',
+  });
+});
+
+// GET /api/admin/storage/test - Test R2 connectivity (returns raw rclone output for debugging)
+adminApi.get('/storage/test', async (c) => {
+  const sandbox = c.get('sandbox');
+
+  if (!c.env.R2_ACCESS_KEY_ID || !c.env.R2_SECRET_ACCESS_KEY || !c.env.CF_ACCOUNT_ID) {
+    return c.json({
+      ok: false,
+      error: 'R2 not configured',
+      missing: [
+        !c.env.R2_ACCESS_KEY_ID && 'R2_ACCESS_KEY_ID',
+        !c.env.R2_SECRET_ACCESS_KEY && 'R2_SECRET_ACCESS_KEY',
+        !c.env.CF_ACCOUNT_ID && 'CF_ACCOUNT_ID',
+      ].filter(Boolean) as string[],
+    });
+  }
+
+  const configured = await ensureRcloneConfig(sandbox, c.env);
+  if (!configured) {
+    return c.json({ ok: false, error: 'Failed to write rclone config' });
+  }
+
+  const bucket = getR2BucketName(c.env);
+  // List bucket root to test connectivity (always return 200 so we can show raw output)
+  const result = await sandbox.exec(
+    `rclone lsd r2:${bucket} --max-depth 1 2>&1 || true`,
+    { timeout: 15000 },
+  );
+
+  const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+
+  return c.json({
+    ok: result.success,
+    bucket,
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+    output: output.slice(-2000),
+    exitCode: result.exitCode,
   });
 });
 

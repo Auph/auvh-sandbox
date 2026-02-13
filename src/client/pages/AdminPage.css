@@ -104,6 +104,42 @@
   flex-wrap: wrap;
 }
 
+.storage-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.r2-test-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+}
+
+.r2-test-result.ok {
+  background-color: rgba(74, 222, 128, 0.15);
+  border: 1px solid var(--success-color);
+}
+
+.r2-test-result.error {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--error-color);
+}
+
+.r2-test-output {
+  margin: 0.5rem 0 0 0;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .success-banner .storage-info {
   display: flex;
   flex-direction: column;

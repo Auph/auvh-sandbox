@@ -9,6 +9,7 @@ import {
   getCdpStatus,
   getDiagnostics,
   triggerSync,
+  testR2Connection,
   AuthError,
   type PendingDevice,
   type PairedDevice,
@@ -63,6 +64,13 @@ export default function AdminPage() {
   const [restartInProgress, setRestartInProgress] = useState(false);
   const [syncInProgress, setSyncInProgress] = useState(false);
   const [syncError, setSyncError] = useState<{ message: string; details?: string } | null>(null);
+  const [r2TestResult, setR2TestResult] = useState<{
+    ok: boolean;
+    output?: string;
+    bucket?: string;
+    error?: string;
+  } | null>(null);
+  const [r2TestInProgress, setR2TestInProgress] = useState(false);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsResponse | null>(null);
   const [troubleshootExpanded, setTroubleshootExpanded] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(() => {
@@ -215,6 +223,28 @@ export default function AdminPage() {
     }
   };
 
+  const handleTestR2 = async () => {
+    setR2TestInProgress(true);
+    setR2TestResult(null);
+    try {
+      const result = await testR2Connection();
+      setR2TestResult({
+        ok: result.ok,
+        output: result.output || result.stderr || result.stdout || result.error,
+        bucket: result.bucket,
+        error: result.error,
+      });
+    } catch (err) {
+      setR2TestResult({
+        ok: false,
+        error: err instanceof Error ? err.message : 'Test failed',
+        output: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setR2TestInProgress(false);
+    }
+  };
+
   const handleSync = async () => {
     setSyncInProgress(true);
     setSyncError(null);
@@ -338,15 +368,35 @@ export default function AdminPage() {
                 Last backup: {formatSyncTime(storageStatus.lastSync)}
               </span>
             </div>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={handleSync}
-              disabled={syncInProgress}
-            >
-              {syncInProgress && <ButtonSpinner />}
-              {syncInProgress ? 'Syncing...' : 'Backup Now'}
-            </button>
+            <div className="storage-buttons">
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleTestR2}
+                disabled={r2TestInProgress}
+              >
+                {r2TestInProgress && <ButtonSpinner />}
+                {r2TestInProgress ? 'Testing...' : 'Test R2'}
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleSync}
+                disabled={syncInProgress}
+              >
+                {syncInProgress && <ButtonSpinner />}
+                {syncInProgress ? 'Syncing...' : 'Backup Now'}
+              </button>
+            </div>
           </div>
+          {r2TestResult && (
+            <div className={`r2-test-result ${r2TestResult.ok ? 'ok' : 'error'}`}>
+              <strong>R2 test {r2TestResult.ok ? 'succeeded' : 'failed'}:</strong>
+              {r2TestResult.bucket && <span> bucket={r2TestResult.bucket}</span>}
+              {r2TestResult.output && (
+                <pre className="r2-test-output">{r2TestResult.output}</pre>
+              )}
+              {r2TestResult.error && <p>{r2TestResult.error}</p>}
+            </div>
+          )}
           {syncError && (
             <div className="sync-error">
               <strong>Backup failed:</strong> {syncError.message}

@@ -60,7 +60,7 @@ export async function syncToR2(sandbox: Sandbox, env: MoltbotEnv): Promise<SyncR
     const errOut = [configResult.stderr, configResult.stdout]
       .filter(Boolean)
       .join('\n---\n')
-      .slice(-800);
+      .slice(-2000);
     return {
       success: false,
       error: 'Config sync failed',
