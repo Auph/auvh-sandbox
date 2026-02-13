@@ -40,21 +40,9 @@ describe('ensureRcloneConfig', () => {
   });
 
   describe('configuration behavior', () => {
-    it('skips setup if already configured (flag file exists)', async () => {
+    it('always writes rclone config with current credentials', async () => {
       const { sandbox, execMock, writeFileMock } = createMockSandbox();
-      execMock.mockResolvedValue(createMockExecResult('yes'));
-      const env = createMockEnvWithR2();
-
-      expect(await ensureRcloneConfig(sandbox, env)).toBe(true);
-      expect(writeFileMock).not.toHaveBeenCalled();
-    });
-
-    it('writes rclone config and sets flag when not configured', async () => {
-      const { sandbox, execMock, writeFileMock } = createMockSandbox();
-      execMock
-        .mockResolvedValueOnce(createMockExecResult('no')) // flag check
-        .mockResolvedValueOnce(createMockExecResult()) // mkdir
-        .mockResolvedValueOnce(createMockExecResult()); // touch flag
+      execMock.mockResolvedValue(createMockExecResult());
 
       const env = createMockEnvWithR2({
         R2_ACCESS_KEY_ID: 'mykey',

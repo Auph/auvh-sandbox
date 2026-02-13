@@ -364,18 +364,23 @@ export default function AdminPage() {
                   </li>
                   <li>
                     <strong>Permission denied / access denied:</strong> Your R2 API token must have
-                    Object Read & Write on the <code>clawworker-data</code> bucket. In Cloudflare
-                    Dashboard → R2 → Manage R2 API Tokens, edit your token and add
-                    <code>clawworker-data</code> with read+write access.
+                    Object Read & Write on the bucket. In Cloudflare Dashboard → R2 → Manage R2
+                    API Tokens, edit your token and add <code>clawworker-data</code> (or{' '}
+                    <code>moltbot-data</code> if migrating) with read+write access.
                   </li>
                   <li>
                     <strong>No config file found:</strong> The gateway may not have started yet.
                     Try Restart Gateway above, wait 1–2 minutes, then Backup Now again.
                   </li>
                   <li>
+                    <strong>Migrated from old setup?</strong> If you previously used{' '}
+                    <code>moltbot-data</code>, set <code>R2_BUCKET_NAME=moltbot-data</code> via
+                    wrangler secret to keep using your existing bucket.
+                  </li>
+                  <li>
                     <strong>Other errors:</strong> Check <code>npx wrangler tail</code> for logs.
-                    Ensure the <code>clawworker-data</code> bucket exists (created on first deploy).
-                    If you use a custom bucket, set <code>R2_BUCKET_NAME</code> via wrangler secret.
+                    Ensure the bucket exists (created on first deploy). After updating secrets, try
+                    Restart Gateway so the container picks up new credentials.
                   </li>
                 </ul>
               </div>
