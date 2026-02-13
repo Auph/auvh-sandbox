@@ -8,7 +8,7 @@ import {
   syncToR2,
   waitForProcess,
 } from '../gateway';
-import { ensureRcloneConfig } from '../gateway/r2';
+import { ensureRcloneConfig, runRcloneWithFreshConfig } from '../gateway/r2';
 
 // CLI commands can take 10-15 seconds to complete due to WebSocket connection overhead
 const CLI_TIMEOUT_MS = 20000;
@@ -358,19 +358,15 @@ adminApi.get('/storage/test', async (c) => {
     });
   }
 
-  const configured = await ensureRcloneConfig(sandbox, c.env);
-  if (!configured) {
-    return c.json({ ok: false, error: 'Failed to write rclone config' });
-  }
-
   const bucket = getR2BucketName(c.env);
   const accessKey = c.env.R2_ACCESS_KEY_ID?.trim() ?? '';
   const accountId = c.env.CF_ACCOUNT_ID?.trim() ?? '';
 
-  // List bucket root to test connectivity (always return 200 so we can show raw output)
-  const result = await sandbox.exec(
-    `rclone lsd r2:${bucket} --max-depth 1 2>&1 || true`,
-    { timeout: 15000 },
+  // Use temp config file - guarantees fresh credentials, no cache
+  const result = await runRcloneWithFreshConfig(
+    sandbox,
+    c.env,
+    `lsd r2:${bucket} --max-depth 1`,
   );
 
   const output = [result.stdout, result.stderr].filter(Boolean).join('\n');

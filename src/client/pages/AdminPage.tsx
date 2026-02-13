@@ -443,7 +443,9 @@ export default function AdminPage() {
                     </ol>
                     <p className="form-hint">
                       Use an <strong>R2 API token</strong> (from R2 → Manage R2 API Tokens), not a
-                      general Cloudflare API token. Token and bucket must be in the same account as your worker.
+                      general Cloudflare API token. Access Key ID and Secret must be from the{' '}
+                      <strong>same token</strong>. After updating secrets, redeploy or restart the
+                      gateway so the container picks up new credentials.
                     </p>
                   </div>
                 )}
