@@ -412,24 +412,30 @@ export default function AdminPage() {
               {r2TestResult.error && <p>{r2TestResult.error}</p>}
               {!r2TestResult.ok &&
                 r2TestResult.output &&
-                /AccessDenied|Access Denied|403/i.test(r2TestResult.output) && (
+                (/AccessDenied|Access Denied|SignatureDoesNotMatch|403/i.test(r2TestResult.output)) && (
                   <div className="r2-access-denied-fix">
-                    <strong>Access Denied — token lacks permission</strong>
+                    <strong>
+                      {/SignatureDoesNotMatch|signature.*does not match/i.test(r2TestResult.output || '')
+                        ? 'SignatureDoesNotMatch — wrong R2_SECRET_ACCESS_KEY'
+                        : 'Access Denied — token lacks permission'}
+                    </strong>
                     <ol>
                       <li>
                         Dashboard → <strong>R2</strong> → <strong>Manage R2 API Tokens</strong>
                       </li>
                       <li>
-                        <strong>Create a new token</strong> (existing tokens can&apos;t be edited)
+                        <strong>Create a new token</strong> (existing tokens can&apos;t be edited;
+                        the secret is shown only once)
                       </li>
                       <li>
                         Permissions: <strong>Object Read &amp; Write</strong>, apply to bucket{' '}
                         <code>{r2TestResult.bucket}</code>
                       </li>
                       <li>
-                        Copy the new Access Key ID and Secret, then:{' '}
+                        Copy the new Access Key ID and Secret (Secret is shown only once). Run:{' '}
                         <code>npx wrangler secret put R2_ACCESS_KEY_ID</code> and{' '}
-                        <code>npx wrangler secret put R2_SECRET_ACCESS_KEY</code>
+                        <code>npx wrangler secret put R2_SECRET_ACCESS_KEY</code>. Paste the full
+                        Secret carefully—no truncation or extra spaces.
                       </li>
                       <li>
                         Restart Gateway or redeploy so the container picks up the new credentials
