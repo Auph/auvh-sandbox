@@ -476,9 +476,11 @@ export default function AdminPage() {
                     Try Restart Gateway above, wait 1–2 minutes, then Backup Now again.
                   </li>
                   <li>
-                    <strong>Migrated from old setup?</strong> If you previously used{' '}
-                    another bucket (e.g. <code>moltworker-data</code>), set <code>R2_BUCKET_NAME</code> to that bucket via
-                    wrangler secret to keep using your existing bucket.
+                    <strong>Wrong bucket / migrated from Moltworker?</strong> If Test R2 shows{' '}
+                    <code>bucket=clawworker-data</code> but your data is in <code>moltworker-data</code>, set{' '}
+                    <code>npx wrangler secret put R2_BUCKET_NAME</code> and enter{' '}
+                    <code>moltworker-data</code>. If you deployed with a custom name (e.g. my-bot-clawworker),
+                    add <code>--name my-bot-clawworker</code> so the secret targets the correct worker.
                   </li>
                   <li>
                     <strong>Other errors:</strong> Check <code>npx wrangler tail</code> for logs.

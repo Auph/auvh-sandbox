@@ -58,6 +58,10 @@ export function ReviewStep({ config, onNext, onBack }: ReviewStepProps) {
           <Secret value={config.gatewayToken} />
         </div>
         <div className="review-item">
+          <span className="review-label">R2 Bucket</span>
+          <span>{config.r2BucketName?.trim() || "clawworker-data"}</span>
+        </div>
+        <div className="review-item">
           <span className="review-label">R2 Storage</span>
           <Secret value={config.r2AccessKeyId} />
         </div>

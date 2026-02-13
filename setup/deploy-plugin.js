@@ -36,9 +36,11 @@ function runCommand(cmd, args, options = {}) {
   });
 }
 
-function setSecret(key, value) {
+function setSecret(key, value, workerName) {
+  const args = ["wrangler", "secret", "put", key];
+  if (workerName) args.push("--name", workerName);
   return new Promise((resolve, reject) => {
-    const proc = spawn("npx", ["wrangler", "secret", "put", key], {
+    const proc = spawn("npx", args, {
       cwd: PROJECT_ROOT,
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -92,8 +94,10 @@ export function deployPlugin() {
           secrets.push({ key: "CF_AI_GATEWAY_ACCOUNT_ID", value: config.aiGatewayAccountId });
           secrets.push({ key: "CF_AI_GATEWAY_GATEWAY_ID", value: config.aiGatewayGatewayId });
         }
+        const r2Bucket = config.r2BucketName?.trim() || "clawworker-data";
         secrets.push(
           { key: "GATEWAY_TOKEN", value: config.gatewayToken },
+          { key: "R2_BUCKET_NAME", value: r2Bucket },
           { key: "R2_ACCESS_KEY_ID", value: config.r2AccessKeyId },
           { key: "R2_SECRET_ACCESS_KEY", value: config.r2SecretKey },
           { key: "CF_ACCOUNT_ID", value: config.cfAccountId }
@@ -130,7 +134,7 @@ export function deployPlugin() {
         for (const { key, value } of secrets) {
           if (!value) continue;
           try {
-            await setSecret(key, value);
+            await setSecret(key, value, workerName);
           } catch (e) {
             console.error(`[deploy] Failed to set ${key}:`, e.message);
           }

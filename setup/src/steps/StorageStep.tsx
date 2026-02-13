@@ -22,6 +22,20 @@ export function StorageStep({ config, updateConfig, onNext, onBack }: StorageSte
       </p>
 
       <div className="form-group">
+        <label htmlFor="r2-bucket">R2 Bucket Name</label>
+        <input
+          id="r2-bucket"
+          type="text"
+          placeholder="clawworker-data"
+          value={config.r2BucketName || "clawworker-data"}
+          onChange={(e) => updateConfig({ r2BucketName: e.target.value })}
+        />
+        <p className="form-hint">
+          Default <code>clawworker-data</code>. Use <code>moltworker-data</code> if migrating from Moltworker.
+        </p>
+      </div>
+
+      <div className="form-group">
         <label htmlFor="r2-key">R2 Access Key ID</label>
         <input
           id="r2-key"

@@ -6,6 +6,7 @@ export interface SetupConfig {
   aiGatewayAccountId: string;
   aiGatewayGatewayId: string;
   gatewayToken: string;
+  r2BucketName: string;
   r2AccessKeyId: string;
   r2SecretKey: string;
   cfAccountId: string;
@@ -19,6 +20,7 @@ export const defaultConfig: SetupConfig = {
   aiGatewayAccountId: "",
   aiGatewayGatewayId: "",
   gatewayToken: "",
+  r2BucketName: "clawworker-data",
   r2AccessKeyId: "",
   r2SecretKey: "",
   cfAccountId: "",

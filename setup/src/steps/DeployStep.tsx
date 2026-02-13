@@ -95,6 +95,8 @@ export function DeployStep({ config, onBack }: DeployStepProps) {
 
   secrets.push({ name: "GATEWAY_TOKEN", value: config.gatewayToken });
 
+  const r2Bucket = config.r2BucketName?.trim() || "clawworker-data";
+  secrets.push({ name: "R2_BUCKET_NAME", value: r2Bucket });
   secrets.push({ name: "R2_ACCESS_KEY_ID", value: config.r2AccessKeyId });
   secrets.push({ name: "R2_SECRET_ACCESS_KEY", value: config.r2SecretKey });
   secrets.push({ name: "CF_ACCOUNT_ID", value: config.cfAccountId });
