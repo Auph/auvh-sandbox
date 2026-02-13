@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'setup/**'
-      - '.github/workflows/deploy-setup.yml'
 
 jobs:
   deploy:
