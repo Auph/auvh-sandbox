@@ -35,6 +35,7 @@ r2_configured() {
 
 # Trim whitespace so rclone paths are correct
 R2_BUCKET="$(echo "${R2_BUCKET_NAME:-clawworker-data}" | tr -d '[:space:]')"
+[ -z "$R2_BUCKET" ] && R2_BUCKET="clawworker-data"
 
 setup_rclone() {
     mkdir -p "$(dirname "$RCLONE_CONF")"
@@ -68,18 +69,24 @@ if r2_configured; then
     restore_config() {
         if rclone ls "r2:${R2_BUCKET}/openclaw/openclaw.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q openclaw.json; then
             echo "Restoring config from R2 (openclaw/)..."
-            rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
-            echo "Config restored"
-            return 0
+            if rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1; then
+                echo "Config restored"
+                return 0
+            fi
+            echo "WARNING: config restore failed, will retry"
+            return 1
         fi
         if rclone ls "r2:${R2_BUCKET}/clawdbot/clawdbot.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q clawdbot.json; then
             echo "Restoring from legacy R2 backup (clawdbot/)..."
-            rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
-            if [ -f "$CONFIG_DIR/clawdbot.json" ] && [ ! -f "$CONFIG_FILE" ]; then
-                mv "$CONFIG_DIR/clawdbot.json" "$CONFIG_FILE"
+            if rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1; then
+                if [ -f "$CONFIG_DIR/clawdbot.json" ] && [ ! -f "$CONFIG_FILE" ]; then
+                    mv "$CONFIG_DIR/clawdbot.json" "$CONFIG_FILE"
+                fi
+                echo "Legacy config restored and migrated"
+                return 0
             fi
-            echo "Legacy config restored and migrated"
-            return 0
+            echo "WARNING: legacy config restore failed, will retry"
+            return 1
         fi
         return 1
     }

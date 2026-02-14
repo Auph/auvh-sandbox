@@ -263,6 +263,12 @@
           } else if (data.status === 'not_responding') {
             statusEl.textContent = 'Container up, starting gateway...';
             setProgress(1);
+            if (pollCount >= retryBtnAfterPolls) {
+              stuckHint.style.display = 'block';
+              infoEl.style.display = 'none';
+            } else if (pollCount >= stuckHintAfterPolls) {
+              infoEl.textContent = 'Still starting… cold start can take 3–5 min (R2 restore + gateway).';
+            }
           } else {
             statusEl.textContent = 'Checking... (' + pollCount + ')';
             setProgress(1);
