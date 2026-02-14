@@ -173,6 +173,12 @@ try {
 config.gateway = config.gateway || {};
 config.channels = config.channels || {};
 
+// Workspace path: OpenClaw default is ~/.openclaw/workspace, but we use /root/clawd
+// and sync it to R2 under workspace/. Without this, the agent looks for memory.md
+// in the wrong place and gets ENOENT.
+config.agent = config.agent || {};
+config.agent.workspace = '/root/clawd';
+
 // Gateway configuration
 config.gateway.port = 18789;
 config.gateway.mode = 'local';
