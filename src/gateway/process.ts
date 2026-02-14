@@ -122,7 +122,9 @@ export async function ensureMoltbotGateway(sandbox: Sandbox, env: MoltbotEnv): P
       const logs = await process.getLogs();
       console.error('[Gateway] startup failed. Stderr:', logs.stderr);
       console.error('[Gateway] startup failed. Stdout:', logs.stdout);
-      throw new Error(`OpenClaw gateway failed to start. Stderr: ${logs.stderr || '(empty)'}`, {
+      const stderr = logs.stderr || '(empty)';
+      const stdout = logs.stdout ? `\nStdout: ${logs.stdout}` : '';
+      throw new Error(`OpenClaw gateway failed to start. Stderr: ${stderr}${stdout}`, {
         cause: e,
       });
     } catch (logErr) {

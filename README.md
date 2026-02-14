@@ -524,6 +524,8 @@ OpenClaw in Cloudflare Sandbox uses multiple authentication layers:
 
 **R2 "directory not found" / intermittent failures:** Can occur when the container's network path to R2 is flaky (sleep/wake, region routing). Test R2 and background sync now retry on failure. If it persists, refresh the page to wake the container, or redeploy.
 
+**"No backup found in R2" / Gateway startup failed:** Verify `R2_BUCKET_NAME` matches where your data lives. If your backup is in `clawworker-data` but the secret is `moltworker-data`, change it: `npx wrangler secret put R2_BUCKET_NAME` and enter the correct bucket. Ensure `openclaw/openclaw.json` exists in that bucket for config restore. Redeploy after changing secrets.
+
 **Access denied on admin routes:** Ensure `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are set, and that your Cloudflare Access application is configured correctly.
 
 **Devices not appearing in admin UI:** Device list commands take 10-15 seconds due to WebSocket connection overhead. Wait and refresh.

@@ -172,12 +172,13 @@ try {
 
 config.gateway = config.gateway || {};
 config.channels = config.channels || {};
+config.agents = config.agents || {};
+config.agents.defaults = config.agents.defaults || {};
 
 // Workspace path: OpenClaw default is ~/.openclaw/workspace, but we use /root/clawd
 // and sync it to R2 under workspace/. Without this, the agent looks for memory.md
-// in the wrong place and gets ENOENT.
-config.agent = config.agent || {};
-config.agent.workspace = '/root/clawd';
+// in the wrong place and gets ENOENT. Use agents.defaults.workspace (canonical schema).
+config.agents.defaults.workspace = '/root/clawd';
 
 // Gateway configuration
 config.gateway.port = 18789;
@@ -337,6 +338,7 @@ fi
 # ============================================================
 # START GATEWAY
 # ============================================================
+mkdir -p "$WORKSPACE_DIR"
 echo "Starting OpenClaw Gateway..."
 echo "Gateway will be available on port 18789"
 
