@@ -18,9 +18,12 @@ jobs:
 
       - run: npm ci
 
+      # Use npm run deploy so scripts/deploy-with-bucket.js runs and applies
+      # R2 bucket override from R2_BUCKET_NAME (or R2_BUCKET_OVERRIDE). Without this,
+      # the binding would always be clawworker-data from wrangler.jsonc.
       - name: Deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_BUCKET_OVERRIDE: ${{ secrets.R2_BUCKET_NAME }}
+        run: npm run deploy
