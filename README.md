@@ -518,7 +518,7 @@ OpenClaw in Cloudflare Sandbox uses multiple authentication layers:
 
 **Config changes not working:** Edit the `# Build cache bust:` comment in `Dockerfile` and redeploy
 
-**Slow first request:** Cold starts take 1-2 minutes. Subsequent requests are faster.
+**Slow first request:** Cold start (R2 restore + gateway) can take 3–5 minutes. The worker waits up to 5 minutes for the gateway to become ready. Subsequent requests are faster.
 
 **R2 not mounting:** Check that all three R2 secrets are set (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `CF_ACCOUNT_ID`). Note: R2 mounting only works in production, not with `wrangler dev`.
 

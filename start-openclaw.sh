@@ -33,7 +33,8 @@ r2_configured() {
     [ -n "$R2_ACCESS_KEY_ID" ] && [ -n "$R2_SECRET_ACCESS_KEY" ] && [ -n "$CF_ACCOUNT_ID" ]
 }
 
-R2_BUCKET="${R2_BUCKET_NAME:-clawworker-data}"
+# Trim whitespace so rclone paths are correct
+R2_BUCKET="$(echo "${R2_BUCKET_NAME:-clawworker-data}" | tr -d '[:space:]')"
 
 setup_rclone() {
     mkdir -p "$(dirname "$RCLONE_CONF")"
@@ -61,31 +62,49 @@ RCLONE_RESTORE_FLAGS="$RCLONE_FLAGS --timeout=30s --contimeout=10s --low-level-r
 
 if r2_configured; then
     setup_rclone
+    echo "Using R2 bucket: $R2_BUCKET"
 
     echo "Checking R2 for existing backup..."
-    # Check if R2 has an openclaw config backup
-    if rclone ls "r2:${R2_BUCKET}/openclaw/openclaw.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q openclaw.json; then
-        echo "Restoring config from R2..."
-        rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
-        echo "Config restored"
-    elif rclone ls "r2:${R2_BUCKET}/clawdbot/clawdbot.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q clawdbot.json; then
-        echo "Restoring from legacy R2 backup..."
-        rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
-        if [ -f "$CONFIG_DIR/clawdbot.json" ] && [ ! -f "$CONFIG_FILE" ]; then
-            mv "$CONFIG_DIR/clawdbot.json" "$CONFIG_FILE"
+    restore_config() {
+        if rclone ls "r2:${R2_BUCKET}/openclaw/openclaw.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q openclaw.json; then
+            echo "Restoring config from R2 (openclaw/)..."
+            rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
+            echo "Config restored"
+            return 0
         fi
-        echo "Legacy config restored and migrated"
-    else
-        echo "No backup found in R2, starting fresh"
+        if rclone ls "r2:${R2_BUCKET}/clawdbot/clawdbot.json" $RCLONE_RESTORE_FLAGS 2>/dev/null | grep -q clawdbot.json; then
+            echo "Restoring from legacy R2 backup (clawdbot/)..."
+            rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
+            if [ -f "$CONFIG_DIR/clawdbot.json" ] && [ ! -f "$CONFIG_FILE" ]; then
+                mv "$CONFIG_DIR/clawdbot.json" "$CONFIG_FILE"
+            fi
+            echo "Legacy config restored and migrated"
+            return 0
+        fi
+        return 1
+    }
+    if ! restore_config; then
+        sleep 3
+        if ! restore_config; then
+            echo "No backup found in R2 (bucket=$R2_BUCKET). Ensure openclaw/openclaw.json exists or R2_BUCKET_NAME matches your bucket. Starting fresh."
+        fi
     fi
 
-    # Restore workspace
-    REMOTE_WS_COUNT=$(rclone ls "r2:${R2_BUCKET}/workspace/" $RCLONE_RESTORE_FLAGS 2>/dev/null | wc -l)
-    if [ "$REMOTE_WS_COUNT" -gt 0 ]; then
-        echo "Restoring workspace from R2 ($REMOTE_WS_COUNT files)..."
-        mkdir -p "$WORKSPACE_DIR"
-        rclone copy "r2:${R2_BUCKET}/workspace/" "$WORKSPACE_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || echo "WARNING: workspace restore failed with exit code $?"
-        echo "Workspace restored"
+    # Restore workspace (retry once on failure)
+    mkdir -p "$WORKSPACE_DIR"
+    restore_workspace() {
+        REMOTE_WS_COUNT=$(rclone ls "r2:${R2_BUCKET}/workspace/" $RCLONE_RESTORE_FLAGS 2>/dev/null | wc -l)
+        if [ "$REMOTE_WS_COUNT" -gt 0 ]; then
+            echo "Restoring workspace from R2 ($REMOTE_WS_COUNT files)..."
+            rclone copy "r2:${R2_BUCKET}/workspace/" "$WORKSPACE_DIR/" $RCLONE_RESTORE_FLAGS -v 2>&1 || return 1
+            echo "Workspace restored"
+            return 0
+        fi
+        return 1
+    }
+    if ! restore_workspace; then
+        sleep 3
+        restore_workspace || true
     fi
 
     # Restore skills

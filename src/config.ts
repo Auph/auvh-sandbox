@@ -8,8 +8,8 @@ export const GATEWAY_PORT = 18789;
 /** @deprecated Use GATEWAY_PORT */
 export const MOLTBOT_PORT = GATEWAY_PORT;
 
-/** Maximum time to wait for gateway to start (3 minutes) */
-export const STARTUP_TIMEOUT_MS = 180_000;
+/** Maximum time to wait for gateway to start (5 min for cold start + R2 restore + gateway bind) */
+export const STARTUP_TIMEOUT_MS = 300_000;
 
 /**
  * R2 bucket name for persistent storage.
